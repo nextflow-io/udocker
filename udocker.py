@@ -3736,7 +3736,7 @@ if __name__ == "__main__":
         sys.exit(1)
     conf = Config()
     pr = None
-    if sys.argv[1] == 'prof':
+    if len(sys.argv) > 2 and sys.argv[1] == 'prof':
         import cProfile, pstats, StringIO
         pr = cProfile.Profile()
         sys.argv.pop(1)
