@@ -3700,18 +3700,32 @@ class Main(object):
                 msg.out("Error: invalid command:", command, "\n")
                 self.udocker.do_help(self.cmdp)
 
-    def start(self):
+    def start(self, profile=None):
         """Program start and exception handling"""
         try:
-            exit_status = self.execute()
+            if profile:
+                profile.enable()
+                exit_status = self.execute()
+                profile.disable()
+                sortby = 'cumulative'
+                ps = pstats.Stats(pr).sort_stats(sortby)
+                ps.print_stats()
+            else:
+                exit_status = self.execute()
         except (KeyboardInterrupt, SystemExit):
             FileUtil("").cleanup()
+            if profile:
+                profile.disable()
             return 1
         except:
             FileUtil("").cleanup()
+            if profile:
+                profile.disable()
             raise
         else:
             FileUtil("").cleanup()
+            if profile:
+                profile.disable()
             return exit_status
 
 # pylint: disable=invalid-name
@@ -3721,4 +3735,9 @@ if __name__ == "__main__":
         msg.out("Error: do not run as root !")
         sys.exit(1)
     conf = Config()
-    sys.exit(Main().start())
+    pr = None
+    if sys.argv[1] == 'prof':
+        import cProfile, pstats, StringIO
+        pr = cProfile.Profile()
+        sys.argv.pop(1)
+    sys.exit(Main().start(pr))
